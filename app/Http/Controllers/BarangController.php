@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Barang;
+use Illuminate\Http\Request;
+
+class BarangController extends Controller
+{
+    public function create()
+    {
+        return view('barang');
+    }
+
+    public function createMobile()
+    {
+        return view('mobile.barang');
+    }
+
+    public function store(Request $request)
+    {
+        $dataBarang = $request->input('barang');
+
+        foreach ($dataBarang as $item) {
+            // Simpan ke database (contoh model: Barang)
+            Barang::create([
+                'barcode' => $item['barcode'],
+                'nama' => $item['nama'],
+                'jumlah' => $item['jumlah'],
+            ]);
+        }
+
+        return redirect()->route('barang.create')->with('success', 'Data berhasil disimpan!');
+    }
+
+}
