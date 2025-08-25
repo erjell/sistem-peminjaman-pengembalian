@@ -1,0 +1,4 @@
+{
+  "resources/js/app.js": {"file": "resources/js/app.js", "src": "resources/js/app.js", "isEntry": true},
+  "resources/css/app.css": {"file": "resources/css/app.css", "src": "resources/css/app.css"}
+}
