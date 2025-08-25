@@ -21,6 +21,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/barang-masuk', [barangController::class, 'create'])->name('barang.create');
+    Route::get('/mobile/barang-masuk', [barangController::class, 'createMobile'])->name('barang.mobile.create');
     Route::post('/barang-masuk', [barangController::class, 'store'])->name('barang.store');
 });
 
