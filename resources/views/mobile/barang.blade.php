@@ -11,34 +11,42 @@
         <div class="max-w-md mx-auto bg-white p-4 rounded shadow">
             <h1 class="text-xl font-bold mb-4">Form Input Barang</h1>
 
-            <div class="space-y-4 mb-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Partner</label>
-                    <input type="text" class="w-full p-2 border border-gray-300 rounded" placeholder="Nama Partner">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Keperluan</label>
-                    <input type="text" class="w-full p-2 border border-gray-300 rounded" placeholder="Keperluan Barang">
-                </div>
-            </div>
+            @if (session('success'))
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded mb-4">{{ session('success') }}</div>
+            @endif
+            @if (session('error'))
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4">{{ session('error') }}</div>
+            @endif
 
-            <div class="relative mb-4">
-                <label for="barcode" class="block text-sm font-medium text-gray-700 mb-1">Scan Barcode atau Cari Nama Barang:</label>
-                <input type="text" id="barcode" autocomplete="off" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Scan barcode atau ketik nama barang..." oninput="showSuggestions()" onkeydown="handleScan(event)">
-                <ul id="suggestions" class="absolute z-10 bg-white border border-gray-300 w-full mt-1 rounded shadow hidden max-h-48 overflow-y-auto"></ul>
-            </div>
+            <form id="barangForm" action="{{ route('barang.store') }}" method="POST">
+                @csrf
+                <div class="space-y-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Partner</label>
+                        <input type="text" class="w-full p-2 border border-gray-300 rounded" placeholder="Nama Partner">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Keperluan</label>
+                        <input type="text" class="w-full p-2 border border-gray-300 rounded" placeholder="Keperluan Barang">
+                    </div>
+                </div>
 
-            <div id="barang-list" class="space-y-2"></div>
+                <div class="relative mb-4">
+                    <label for="barcode" class="block text-sm font-medium text-gray-700 mb-1">Scan Barcode atau Cari Nama Barang:</label>
+                    <input type="text" id="barcode" autocomplete="off" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Scan barcode atau ketik nama barang..." oninput="showSuggestions()" onkeydown="handleScan(event)">
+                    <ul id="suggestions" class="absolute z-10 bg-white border border-gray-300 w-full mt-1 rounded shadow hidden max-h-48 overflow-y-auto"></ul>
+                </div>
+
+                <div id="barang-list" class="space-y-2"></div>
+
+                <button type="submit" class="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded">Simpan Barang</button>
+            </form>
         </div>
 
         <div id="popup" class="fixed bottom-5 right-5 bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-2 rounded shadow hidden"></div>
 
         <script>
-        const dataBarang = {
-            "123456": { nama: "Kamera Sony A6400", kategori: "Kamera", kondisi: "Baik" },
-            "789012": { nama: "Tripod Velbon EX-540", kategori: "Aksesoris", kondisi: "Baik" },
-            "345678": { nama: "Mic Rode Wireless GO", kategori: "Audio", kondisi: "Rusak" },
-        };
+        const dataBarang = @json($barangList);
 
         const namaToBarcode = {};
         for (const [barcode, barang] of Object.entries(dataBarang)) {
@@ -47,6 +55,7 @@
 
         const barcodeToCardMap = {};
         let counter = 1;
+        let formIndex = 0;
 
         function showSuggestions() {
             const input = document.getElementById('barcode');
@@ -99,9 +108,11 @@
             }
 
             if (barcodeToCardMap[barcode]) {
-                const jumlahSpan = barcodeToCardMap[barcode].querySelector('.jumlah');
+                const card = barcodeToCardMap[barcode];
+                const jumlahSpan = card.querySelector('.jumlah');
                 let jumlah = parseInt(jumlahSpan.textContent);
                 jumlahSpan.textContent = jumlah + 1;
+                card.querySelector('.jumlah-input').value = jumlah + 1;
                 return;
             }
 
@@ -123,11 +134,17 @@
                     <div class="text-sm">Kondisi: ${barang.kondisi}</div>
                     <div class="text-sm">Jumlah: <span class="jumlah">1</span></div>
                 </div>
-                <button onclick="hapusBarang('${barcode}')" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">Hapus</button>
+                <div>
+                    <button type="button" onclick="hapusBarang('${barcode}')" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">Hapus</button>
+                    <input type="hidden" name="barang[${formIndex}][barcode]" value="${barcode}">
+                    <input type="hidden" name="barang[${formIndex}][nama]" value="${barang.nama}">
+                    <input type="hidden" class="jumlah-input" name="barang[${formIndex}][jumlah]" value="1">
+                </div>
             `;
 
             list.appendChild(card);
             barcodeToCardMap[barcode] = card;
+            formIndex++;
         }
 
         function hapusBarang(barcode) {
