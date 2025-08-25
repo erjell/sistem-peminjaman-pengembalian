@@ -14,53 +14,61 @@
         <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
             <h1 class="text-2xl font-bold mb-4">Form Input Barang</h1>
 
-            <!-- Form Partner dan Keperluan -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Partner</label>
-                    <input type="text" class="w-full p-2 border border-gray-300 rounded" placeholder="Nama Partner">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Keperluan</label>
-                    <input type="text" class="w-full p-2 border border-gray-300 rounded" placeholder="Keperluan Barang">
-                </div>
-            </div>
+            @if (session('success'))
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded mb-4">{{ session('success') }}</div>
+            @endif
+            @if (session('error'))
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4">{{ session('error') }}</div>
+            @endif
 
-            <!-- Input Barcode / Nama Barang -->
-            <div class="relative mb-4">
-                <label for="barcode" class="block text-sm font-medium text-gray-700 mb-1">Scan Barcode atau Cari Nama Barang:</label>
-                <input type="text" id="barcode" autocomplete="off" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Scan barcode atau ketik nama barang..." oninput="showSuggestions()" onkeydown="handleScan(event)">
-                <ul id="suggestions" class="absolute z-10 bg-white border border-gray-300 w-full mt-1 rounded shadow hidden max-h-48 overflow-y-auto"></ul>
-            </div>
+            <form id="barangForm" action="{{ route('barang.store') }}" method="POST">
+                @csrf
+                <!-- Form Partner dan Keperluan -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Partner</label>
+                        <input type="text" class="w-full p-2 border border-gray-300 rounded" placeholder="Nama Partner">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Keperluan</label>
+                        <input type="text" class="w-full p-2 border border-gray-300 rounded" placeholder="Keperluan Barang">
+                    </div>
+                </div>
 
-            <!-- Tabel Daftar Barang -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border border-gray-300">
-                    <thead class="bg-gray-200">
-                        <tr>
-                            <th class="px-4 py-2">No</th>
-                            <th class="px-4 py-2">Barcode</th>
-                            <th class="px-4 py-2">Nama Barang</th>
-                            <th class="px-4 py-2">Kategori</th>
-                            <th class="px-4 py-2">Kondisi</th>
-                            <th class="px-4 py-2">Jumlah</th>
-                            <th class="px-4 py-2">Opsi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="barang-table" class="bg-white"></tbody>
-                </table>
-            </div>
+                <!-- Input Barcode / Nama Barang -->
+                <div class="relative mb-4">
+                    <label for="barcode" class="block text-sm font-medium text-gray-700 mb-1">Scan Barcode atau Cari Nama Barang:</label>
+                    <input type="text" id="barcode" autocomplete="off" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Scan barcode atau ketik nama barang..." oninput="showSuggestions()" onkeydown="handleScan(event)">
+                    <ul id="suggestions" class="absolute z-10 bg-white border border-gray-300 w-full mt-1 rounded shadow hidden max-h-48 overflow-y-auto"></ul>
+                </div>
+
+                <!-- Tabel Daftar Barang -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border border-gray-300">
+                        <thead class="bg-gray-200">
+                            <tr>
+                                <th class="px-4 py-2">No</th>
+                                <th class="px-4 py-2">Barcode</th>
+                                <th class="px-4 py-2">Nama Barang</th>
+                                <th class="px-4 py-2">Kategori</th>
+                                <th class="px-4 py-2">Kondisi</th>
+                                <th class="px-4 py-2">Jumlah</th>
+                                <th class="px-4 py-2">Opsi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="barang-table" class="bg-white"></tbody>
+                    </table>
+                </div>
+
+                <button type="submit" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Simpan Barang</button>
+            </form>
         </div>
 
         <!-- Popup Peringatan -->
         <div id="popup" class="fixed bottom-5 right-5 bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-2 rounded shadow hidden"></div>
 
         <script>
-            const dataBarang = {
-          "123456": { nama: "Kamera Sony A6400", kategori: "Kamera", kondisi: "Baik" },
-          "789012": { nama: "Tripod Velbon EX-540", kategori: "Aksesoris", kondisi: "Baik" },
-          "345678": { nama: "Mic Rode Wireless GO", kategori: "Audio", kondisi: "Rusak" },
-        };
+            const dataBarang = @json($barangList);
     
         const namaToBarcode = {};
         for (const [barcode, barang] of Object.entries(dataBarang)) {
@@ -69,6 +77,7 @@
     
         const barcodeToRowMap = {};
         let counter = 1;
+        let formIndex = 0;
     
         function showSuggestions() {
           const input = document.getElementById("barcode");
@@ -122,23 +131,25 @@
             return;
           }
     
-          const barang = dataBarang[barcode];
           const tableBody = document.getElementById("barang-table");
-    
+
           if (barcodeToRowMap[barcode]) {
-            const jumlahCell = barcodeToRowMap[barcode].querySelector(".jumlah-cell");
+            const row = barcodeToRowMap[barcode];
+            const jumlahCell = row.querySelector(".jumlah-cell");
             let jumlah = parseInt(jumlahCell.textContent);
             jumlahCell.textContent = jumlah + 1;
+            row.querySelector('.jumlah-input').value = jumlah + 1;
           } else {
+            const barang = dataBarang[barcode];
             const row = document.createElement("tr");
             row.className = barang.kondisi.toLowerCase() === "rusak"
               ? "bg-red-100 text-red-700 font-semibold"
               : "";
-    
+
             if (barang.kondisi.toLowerCase() === "rusak") {
               showPopup(`⚠️ Barang "${barang.nama}" dalam kondisi RUSAK!`);
             }
-    
+
             row.innerHTML = `
               <td class="px-4 py-2 nomor">${counter++}</td>
               <td class="px-4 py-2">${barcode}</td>
@@ -147,12 +158,16 @@
               <td class="px-4 py-2">${barang.kondisi}</td>
               <td class="px-4 py-2 jumlah-cell">1</td>
               <td class="px-4 py-2">
-                <button onclick="hapusBarang('${barcode}')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">Hapus</button>
+                <button type="button" onclick="hapusBarang('${barcode}')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">Hapus</button>
+                <input type="hidden" name="barang[${formIndex}][barcode]" value="${barcode}">
+                <input type="hidden" name="barang[${formIndex}][nama]" value="${barang.nama}">
+                <input type="hidden" class="jumlah-input" name="barang[${formIndex}][jumlah]" value="1">
               </td>
             `;
-    
+
             tableBody.appendChild(row);
             barcodeToRowMap[barcode] = row;
+            formIndex++;
           }
         }
     
