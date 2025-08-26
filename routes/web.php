@@ -4,10 +4,10 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use App\Http\Controllers\BarangController;
+use App\Http\Controllers\ItemController;
 
 Route::get('/', function () {
     return view('/auth/login');
-
 });
 // return View::make('/auth/login', ['name' => 'James']);
 
@@ -20,12 +20,13 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/barang-masuk', [barangController::class, 'create'])->name('barang.create');
-    Route::get('/mobile/barang-masuk', [barangController::class, 'createMobile'])->name('barang.mobile.create');
-    Route::post('/barang-masuk', [barangController::class, 'store'])->name('barang.store');
+    Route::get('/barang-masuk', [BarangController::class, 'create'])->name('barang.create');
+    Route::get('/mobile/barang-masuk', [BarangController::class, 'createMobile'])->name('barang.mobile.create');
+    Route::post('/barang-masuk', [BarangController::class, 'store'])->name('barang.store');
+
+    Route::get('/items', [ItemController::class, 'index'])->name('items.index');
+    Route::post('/items', [ItemController::class, 'store'])->name('items.store');
+    Route::get('/items/create-code/{category}', [ItemController::class, 'generateCode'])->name('items.code');
 });
-
-
-
 
 require __DIR__.'/auth.php';
